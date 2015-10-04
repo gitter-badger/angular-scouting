@@ -33,16 +33,25 @@ function getName($db, $id, $pswd) {
     }
 }
 
-function byteCoinsToAdd($db, $id) {
-    $query = "SELECT * FROM wagers WHERE associatedId = ?";
-    if($stmt = $db->prepare($query)) {
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if($results) {
-            $matchs = json_decode(file_get_contents("../json/NCRE.json"));
-            $byteCoinsToAdd = 0;
-            
+
+function updateQualificationWagers($db, $matchNum) {
+    $query = "SELECT * FROM `wagers` WHERE matchPredicted = ?";
+    $options = array("timeout"=>2);
+    $request = new HttpRequest("https://frc-api.usfirst.org/v2.0/2015/matches/NCRE?tournamentLevel=qual&matchNumber=" . $matchNum);
+    $request->setOptions($options);
+    $request->addHeaders(array(
+                               "Accept" => "application/json",
+                               "Authorization" => base64_encode("user:token")
+                               ));
+    $request->send();
+    $responsejson = json_decode($request->getResponseBody(), true);
+    $matches = $responsejson["Matches"];
+    if(!empty($responsejson["0"])) {
+        $matchData = $responsejson["0"];
+
+        if($stmt = $db->prepare($query)) {
+            $stmt->bind_param("i", $matchNum);
+            $stmt->execute();
             while($row = $result->fetch_array()) {
                 if(strtotime($matchs["Schedule"][$row["matchPredicted"]]["startTime"]) < strtotime("now")) {
                     $options = array("timeout"=>2);

@@ -79,6 +79,7 @@ if($stmt = $db->prepare($query)){
                 echo("Stack height: ".$stack["stacks_totes"].", Cap state: ".$stack["capped_stack"].", Cap height: ".$stack["cap_height"]."\n\n");
 			}
         }
+        updateQualificationWagers($db, $postData["match_number"]);
     }
 }
 $db->close();
